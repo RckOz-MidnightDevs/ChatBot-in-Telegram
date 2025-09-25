@@ -2,10 +2,12 @@ import telebot
 from telebot import types
 import random
 import os
+from flask import Flask, request
 
-# TOKEN = "Mi Token Asignado al crear el bot" descomenta esta linea en caso de no usar Render y aplicar en local
-TOKEN =os.getenv("TOKEN")  # Render lo leerá de las variables de entorno
+# TOKEN leído desde variable de entorno en Render
+TOKEN = os.getenv("TOKEN")
 bot = telebot.TeleBot(TOKEN)
+app = Flask(__name__)
 
 # Diccionario de emociones con varias playlists y mensajes
 EMOCIONES = {
@@ -63,7 +65,7 @@ MUSICA = {
     "relajante": "https://open.spotify.com/playlist/37i9dQZF1DWZeKCadgRdKQ"
 }
 
-# Paso 1: Selección de emoción
+# ---------------- Handlers ----------------
 @bot.message_handler(commands=['start'])
 def start_msg(message):
     user_name = message.from_user.first_name
@@ -80,7 +82,6 @@ def start_msg(message):
                      "Selecciona cómo te sientes:",
                      reply_markup=markup)
 
-# Manejo de botones
 @bot.callback_query_handler(func=lambda call: True)
 def callback_query(call):
     user_name = call.from_user.first_name
@@ -88,7 +89,7 @@ def callback_query(call):
         data = EMOCIONES[call.data]
         playlist_random = random.choice(data["playlists"])
         bot.send_animation(call.message.chat.id, data["imagen"],
-                       caption=f"{data['mensaje']} {user_name}\n💡 Consejo: {data['consejo']}\n🎵 Playlist: {playlist_random}")
+                           caption=f"{data['mensaje']} {user_name}\n💡 Consejo: {data['consejo']}\n🎵 Playlist: {playlist_random}")
         # Paso 2: seleccionar actividad
         markup = types.InlineKeyboardMarkup(row_width=2)
         btns = [
@@ -102,7 +103,6 @@ def callback_query(call):
                          reply_markup=markup)
 
     elif call.data in ACTIVIDAD:
-        # Paso 3: seleccionar tipo de música
         markup = types.InlineKeyboardMarkup(row_width=2)
         btns = [types.InlineKeyboardButton(k.title(), callback_data=k) for k in MUSICA]
         markup.add(*btns)
@@ -117,7 +117,6 @@ def callback_query(call):
     else:
         bot.send_message(call.message.chat.id, "Ups… algo salió mal 😅")
 
-# Manejo de texto escrito
 @bot.message_handler(func=lambda m: True)
 def text_message(message):
     user_name = message.from_user.first_name
@@ -126,7 +125,7 @@ def text_message(message):
         data = EMOCIONES[text]
         playlist_random = random.choice(data["playlists"])
         bot.send_animation(message.chat.id, data["imagen"],
-                       caption=f"{data['mensaje']} {user_name}\n💡 Consejo: {data['consejo']}\n🎵 Playlist: {playlist_random}")
+                           caption=f"{data['mensaje']} {user_name}\n💡 Consejo: {data['consejo']}\n🎵 Playlist: {playlist_random}")
     elif text in ACTIVIDAD:
         bot.send_message(message.chat.id,
                          f"{user_name}, seleccionaste la actividad: {text}")
@@ -137,12 +136,19 @@ def text_message(message):
         bot.send_message(message.chat.id,
                          "No entendí. Usa /start para elegir con botones.")
 
-# Mecanismo de reconexión automática
-print("Bot avanzado con playlists aleatorias, nombre de usuario e imágenes iniciado…")
-while True:
-    try:
-        bot.infinity_polling(timeout=60, long_polling_timeout=60)
-    except Exception as e:
-        print(f"Error de polling: {e}")
-        import time
-        time.sleep(5)
+# ---------------- Flask webhook ----------------
+@app.route(f"/{TOKEN}", methods=["POST"])
+def receive_update():
+    json_str = request.get_data().decode("UTF-8")
+    update = telebot.types.Update.de_json(json_str)
+    bot.process_new_updates([update])
+    return "ok", 200
+
+@app.route("/", methods=["GET"])
+def index():
+    return "Bot de Musicoterapia con Webhooks está corriendo 🚀", 200
+
+# ---------------- Run Flask ----------------
+if __name__ == "__main__":
+    print("Bot avanzado con playlists aleatorias, nombre de usuario e imágenes iniciado…")
+    app.run(host="0.0.0.0", port=int(os.environ.get("PORT", 5000)))
