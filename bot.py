@@ -1,8 +1,10 @@
 import telebot
 from telebot import types
 import random
+import os
 
-TOKEN = "Mi Token Asignado al crear el bot"
+# TOKEN = "Mi Token Asignado al crear el bot" descomenta esta linea en caso de no usar Render y aplicar en local
+TOKEN =os.getenv("TOKEN")  # Render lo leerá de las variables de entorno
 bot = telebot.TeleBot(TOKEN)
 
 # Diccionario de emociones con varias playlists y mensajes
