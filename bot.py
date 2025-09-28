@@ -65,6 +65,45 @@ MUSICA = {
     "electrónica": "https://open.spotify.com/playlist/37i9dQZF1DX4dyzvuaRJ0n",
     "relajante": "https://open.spotify.com/playlist/37i9dQZF1DWZeKCadgRdKQ"
 }
+# Videos de YouTube relacionados
+VIDEOS = {
+    "alegre": [
+        "https://www.youtube.com/watch?v=d-diB65scQU",
+        "https://www.youtube.com/watch?v=ZbZSe6N_BXs"
+    ],
+    "triste": [
+        "https://www.youtube.com/watch?v=4N3N1MlvVc4",
+        "https://www.youtube.com/watch?v=JwYX52BP2Sk"
+    ],
+    "estresado": [
+        "https://www.youtube.com/watch?v=2OEL4P1Rz04",
+        "https://www.youtube.com/watch?v=DxIDKZHW3-E"
+    ],
+    "relajado": [
+        "https://www.youtube.com/watch?v=lFcSrYw-ARY",
+        "https://www.youtube.com/watch?v=2OEL4P1Rz04"
+    ],
+    "clásica": [
+        "https://www.youtube.com/watch?v=GRxofEmo3HA",
+        "https://www.youtube.com/watch?v=_4IRMYuE1hI"
+    ],
+    "pop": [
+        "https://www.youtube.com/watch?v=3JWTaaS7LdU",
+        "https://www.youtube.com/watch?v=kJQP7kiw5Fk"
+    ],
+    "rock": [
+        "https://www.youtube.com/watch?v=fJ9rUzIMcZQ",
+        "https://www.youtube.com/watch?v=ktvTqknDobU"
+    ],
+    "electrónica": [
+        "https://www.youtube.com/watch?v=YqeW9_5kURI",
+        "https://www.youtube.com/watch?v=IcrbM1l_BoI"
+    ],
+    "relajante": [
+        "https://www.youtube.com/watch?v=2OEL4P1Rz04",
+        "https://www.youtube.com/watch?v=lFcSrYw-ARY"
+    ]
+}
 
 # ---------------- Utils ----------------
 def saludo_personalizado(nombre):
@@ -145,7 +184,10 @@ def callback_query(call):
         # Botones Spotify y YouTube
         markup = types.InlineKeyboardMarkup(row_width=2)
         btn_spotify = types.InlineKeyboardButton("🎧 Escuchar en Spotify", url=playlist_random)
-        btn_video = types.InlineKeyboardButton("▶️ Ver video relacionado", url="https://www.youtube.com/results?search_query=" + call.data)
+        # Elegir un video aleatorio si hay varios
+        video_random = random.choice(VIDEOS.get(call.data, ["https://www.youtube.com"]))  # fallback si no hay video
+        btn_video = types.InlineKeyboardButton("▶️ Ver video relacionado", url=video_random)
+
         markup.add(btn_spotify, btn_video)
 
         if gif:
