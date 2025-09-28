@@ -107,7 +107,7 @@ def callback_query(call):
         btns = [types.InlineKeyboardButton(k.title(), callback_data=k) for k in MUSICA]
         markup.add(*btns)
         bot.send_message(call.message.chat.id,
-                         "¡Perfecto {user_name}!  Ahora selecciona el tipo de música que te gusta:",
+                         "¡Perfecto!  Ahora selecciona el tipo de música que te gusta:",
                          reply_markup=markup)
 
     elif call.data in MUSICA:
