@@ -133,7 +133,7 @@ def callback_query(call):
                          reply_markup=markup)
 
     
-    elif call.data in MUSICA or call.data in EMOCIONES:
+  elif call.data in MUSICA or call.data in EMOCIONES:
     if call.data in EMOCIONES:
         data = EMOCIONES[call.data]
         playlist_random = random.choice(data["playlists"])
