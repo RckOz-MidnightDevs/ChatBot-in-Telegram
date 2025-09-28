@@ -2,6 +2,7 @@ import telebot
 from telebot import types
 import random
 import os
+from datetime import datetime
 from flask import Flask, request
 
 # TOKEN leído desde variable de entorno en Render
@@ -65,10 +66,21 @@ MUSICA = {
     "relajante": "https://open.spotify.com/playlist/37i9dQZF1DWZeKCadgRdKQ"
 }
 
+# ---------------- Utils ----------------
+def saludo_personalizado(nombre):
+    hora = datetime.now().hour
+    if 6 <= hora < 12:
+        return f"🌞 Buenos días, {nombre}!"
+    elif 12 <= hora < 18:
+        return f"☀️ Buenas tardes, {nombre}!"
+    else:
+        return f"🌙 Buenas noches, {nombre}!"
+
 # ---------------- Handlers ----------------
 @bot.message_handler(commands=['start'])
 def start_msg(message):
     user_name = message.from_user.first_name
+    saludo = saludo_personalizado(user_name)
     markup = types.InlineKeyboardMarkup(row_width=2)
     btns = [
         types.InlineKeyboardButton("😃 Alegre", callback_data="alegre"),
@@ -78,9 +90,19 @@ def start_msg(message):
     ]
     markup.add(*btns)
     bot.send_message(message.chat.id,
-                     f"🎵 ¡Hola {user_name}! Soy MelodIAn tu asistente de Musicoterapia.\n"
+                     f"🎵 ¡Hola, {saludo} {user_name}! Soy MelodIAn tu asistente de Musicoterapia.\n"
                      "Selecciona cómo te sientes:",
                      reply_markup=markup)
+
+@bot.message_handler(commands=['help'])
+def help_msg(message):
+    bot.send_message(message.chat.id,
+        "ℹ️ *Comandos disponibles:*\n"
+        "/start - Iniciar el bot\n"
+        "/help - Mostrar esta ayuda\n"
+        "También puedes escribir directamente una emoción como: 'alegre', 'triste', 'estresado' o 'relajado'.",
+        parse_mode="Markdown"
+    )
 
 @bot.callback_query_handler(func=lambda call: True)
 def callback_query(call):
@@ -107,7 +129,7 @@ def callback_query(call):
         btns = [types.InlineKeyboardButton(k.title(), callback_data=k) for k in MUSICA]
         markup.add(*btns)
         bot.send_message(call.message.chat.id,
-                         "¡Perfecto!  Ahora selecciona el tipo de música que te gusta:",
+                         "¡Perfecto! Ahora selecciona el tipo de música que te gusta:",
                          reply_markup=markup)
 
     elif call.data in MUSICA:
@@ -133,9 +155,13 @@ def text_message(message):
         bot.send_message(message.chat.id,
                          f"🎶 Aquí tienes una playlist de {text}: {MUSICA[text]}")
     else:
-        bot.send_message(message.chat.id,
-                         "No entendí. Usa /start para elegir con botones.")
-
+        # Respuestas aleatorias
+        respuestas = [
+            "No entendí muy bien 😅, prueba con /start para elegir con botones.",
+            "Hmm 🤔 creo que eso no está en mi lista. Usa /help para ver las opciones.",
+            "Lo siento, aún estoy aprendiendo 🧠. Usa /start para comenzar de nuevo."
+        ]
+        bot.send_message(message.chat.id, random.choice(respuestas))
 # ---------------- Flask webhook ----------------
 @app.route(f"/{TOKEN}", methods=["POST"])
 def receive_update():
