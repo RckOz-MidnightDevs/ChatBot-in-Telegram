@@ -107,11 +107,13 @@ def help_msg(message):
 @bot.callback_query_handler(func=lambda call: True)
 def callback_query(call):
     user_name = call.from_user.first_name
+
     if call.data in EMOCIONES:
         data = EMOCIONES[call.data]
         playlist_random = random.choice(data["playlists"])
-        bot.send_animation(call.message.chat.id, data["imagen"],
-                           caption=f"{data['mensaje']} {user_name}\n💡 Consejo: {data['consejo']}\n🎵 Playlist: {playlist_random}")
+        gif = data["imagen"]
+        mensaje = f"{data['mensaje']} {user_name}\n💡 Consejo: {data['consejo']}"
+
         # Paso 2: seleccionar actividad
         markup = types.InlineKeyboardMarkup(row_width=2)
         btns = [
@@ -120,41 +122,39 @@ def callback_query(call):
             types.InlineKeyboardButton("🛀 Relajación", callback_data="relajación")
         ]
         markup.add(*btns)
-        bot.send_message(call.message.chat.id,
-                         "Selecciona tu actividad actual:",
-                         reply_markup=markup)
+        bot.send_animation(call.message.chat.id, gif, caption=mensaje)
+        bot.send_message(call.message.chat.id, "Selecciona tu actividad actual:", reply_markup=markup)
 
     elif call.data in ACTIVIDAD:
         markup = types.InlineKeyboardMarkup(row_width=2)
         btns = [types.InlineKeyboardButton(k.title(), callback_data=k) for k in MUSICA]
         markup.add(*btns)
-        bot.send_message(call.message.chat.id,
-                         "¡Perfecto! Ahora selecciona el tipo de música que te gusta:",
-                         reply_markup=markup)
+        bot.send_message(call.message.chat.id, "¡Perfecto! Ahora selecciona el tipo de música que te gusta:", reply_markup=markup)
 
-    
-  elif call.data in MUSICA or call.data in EMOCIONES:
-    if call.data in EMOCIONES:
-        data = EMOCIONES[call.data]
-        playlist_random = random.choice(data["playlists"])
-        gif = data["imagen"]
-        mensaje = f"{data['mensaje']} {user_name}\n💡 Consejo: {data['consejo']}"
+    elif call.data in MUSICA or call.data in EMOCIONES:
+        if call.data in EMOCIONES:
+            data = EMOCIONES[call.data]
+            playlist_random = random.choice(data["playlists"])
+            gif = data["imagen"]
+            mensaje = f"{data['mensaje']} {user_name}\n💡 Consejo: {data['consejo']}"
+        else:
+            playlist_random = MUSICA[call.data]
+            gif = None
+            mensaje = f"🎶 Aquí tienes una playlist de {call.data}:"
+
+        # Botones Spotify y YouTube
+        markup = types.InlineKeyboardMarkup(row_width=2)
+        btn_spotify = types.InlineKeyboardButton("🎧 Escuchar en Spotify", url=playlist_random)
+        btn_video = types.InlineKeyboardButton("▶️ Ver video relacionado", url="https://www.youtube.com/results?search_query=" + call.data)
+        markup.add(btn_spotify, btn_video)
+
+        if gif:
+            bot.send_animation(call.message.chat.id, gif, caption=mensaje, reply_markup=markup)
+        else:
+            bot.send_message(call.message.chat.id, mensaje, reply_markup=markup)
+
     else:
-        playlist_random = MUSICA[call.data]
-        gif = None
-        mensaje = f"🎶 Aquí tienes una playlist de {call.data}:"
-
-    # Creamos los botones para Spotify y YouTube
-    markup = types.InlineKeyboardMarkup(row_width=2)
-    btn_spotify = types.InlineKeyboardButton("🎧 Escuchar en Spotify", url=playlist_random)
-    btn_video = types.InlineKeyboardButton("▶️ Ver video relacionado", url="https://www.youtube.com/results?search_query="+call.data)
-    markup.add(btn_spotify, btn_video)
-
-    if gif:
-        bot.send_animation(call.message.chat.id, gif, caption=mensaje, reply_markup=markup)
-    else:
-        bot.send_message(call.message.chat.id, mensaje, reply_markup=markup)
-
+        bot.send_message(call.message.chat.id, "Ups… algo salió mal 😅")
 
 @bot.message_handler(func=lambda m: True)
 def text_message(message):
