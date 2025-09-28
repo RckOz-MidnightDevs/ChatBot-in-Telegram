@@ -78,7 +78,7 @@ def start_msg(message):
     ]
     markup.add(*btns)
     bot.send_message(message.chat.id,
-                     f"🎵 ¡Hola {user_name}! Soy Rck tu asistente de Musicoterapia.\n"
+                     f"🎵 ¡Hola {user_name}! Soy MelodIAn tu asistente de Musicoterapia.\n"
                      "Selecciona cómo te sientes:",
                      reply_markup=markup)
 
