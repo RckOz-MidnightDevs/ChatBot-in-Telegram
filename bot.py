@@ -151,4 +151,9 @@ def index():
 # ---------------- Run Flask ----------------
 if __name__ == "__main__":
     print("Bot avanzado con playlists aleatorias, nombre de usuario e imágenes iniciado…")
+     # Configura el webhook en Telegram
+    bot.remove_webhook()
+    bot.set_webhook(url=f"https://chatbot-in-telegram-1.onrender.com/{TOKEN}")
+    
+    # Inicia Flask
     app.run(host="0.0.0.0", port=int(os.environ.get("PORT", 5000)))
